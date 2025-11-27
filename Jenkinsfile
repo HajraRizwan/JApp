@@ -11,18 +11,17 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    dockerImage = docker.build('hajrarizwan/japp')
+                    def dockerImage = docker.build('hajrarizwan/japp')
                 }
             }
         }
 
-       
         stage('Run Tests') {
             steps {
                 script {
-                    // Create a dummy test result file
-                    sh 'mkdir -p test-results'
-                    sh 'echo "<testsuite><testcase classname=\\"demo\\" name=\\"test1\\"/></testsuite>" > test-results/test.xml'
+                    // Create a dummy test result folder and file (Windows-friendly)
+                    bat 'mkdir test-results'
+                    bat 'echo ^<testsuite^>^<testcase classname="demo" name="test1"/^>^</testsuite^> > test-results\\test.xml'
                 }
             }
             post {
@@ -44,4 +43,3 @@ pipeline {
         }
     }
 }
-

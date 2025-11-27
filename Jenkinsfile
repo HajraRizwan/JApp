@@ -19,8 +19,8 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    sh 'mkdir -p test-results'
-                    sh 'echo "<testsuite><testcase classname=\\"demo\\" name=\\"test1\\"/></testsuite>" > test-results/test.xml'
+                    bat 'mkdir -p test-results'
+                    bat 'echo "<testsuite><testcase classname=\\"demo\\" name=\\"test1\\"/></testsuite>" > test-results/test.xml'
                 }
             }
             post {

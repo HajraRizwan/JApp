@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    environment {
+        // Optional: Docker Hub credentials
+        DOCKERHUB_CREDENTIALS = 'dockerhub-cred'
+    }
+
     stages {
         stage('Pull Code') {
             steps {
@@ -11,7 +16,8 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    def dockerImage = docker.build('hajrarizwan/japp')
+                    // Make dockerImage accessible across stages
+                    dockerImage = docker.build('hajrarizwan/japp')
                 }
             }
         }
@@ -19,14 +25,15 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    // Create a dummy test result folder and file (Windows-friendly)
-                    bat 'mkdir test-results'
+                    // Create test-results folder if it doesn't exist
+                    bat 'if not exist test-results mkdir test-results'
+                    
+                    // Create dummy test result XML
                     bat 'echo ^<testsuite^>^<testcase classname="demo" name="test1"/^>^</testsuite^> > test-results\\test.xml'
                 }
             }
             post {
                 always {
-                    // Publish the test result so Jenkins can read it
                     junit 'test-results/*.xml'
                 }
             }
@@ -35,7 +42,7 @@ pipeline {
         stage('Push to Docker Hub') {
             steps {
                 script {
-                    docker.withRegistry('', 'dockerhub-cred') {
+                    docker.withRegistry('', DOCKERHUB_CREDENTIALS) {
                         dockerImage.push()
                     }
                 }

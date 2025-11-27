@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKER_IMAGE = 'hajrarizwan/japp'
-    }
-
     stages {
         stage('Pull Code') {
             steps {
@@ -15,8 +11,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build the Docker image
-                    dockerImage = docker.build(DOCKER_IMAGE)
+                    dockerImage = docker.build('hajrarizwan/japp')
                 }
             }
         }
@@ -24,14 +19,12 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    // Create a dummy test result file for Jenkins
-                    bat 'mkdir test-results'
-                    bat 'echo ^<testsuite^>^<testcase classname="demo" name="test1"/^>^</testsuite^> > test-results\\test.xml'
+                    sh 'mkdir -p test-results'
+                    sh 'echo "<testsuite><testcase classname=\\"demo\\" name=\\"test1\\"/></testsuite>" > test-results/test.xml'
                 }
             }
             post {
                 always {
-                    // Publish the test results to Jenkins
                     junit 'test-results/*.xml'
                 }
             }
@@ -40,21 +33,11 @@ pipeline {
         stage('Push to Docker Hub') {
             steps {
                 script {
-                    // Push Docker image to Docker Hub using credentials
-                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-cred') {
-                        dockerImage.push('latest')
+                    docker.withRegistry('', 'dockerhub-cred') {
+                        dockerImage.push()
                     }
                 }
             }
-        }
-    }
-
-    post {
-        failure {
-            echo 'Pipeline failed. Check logs for details.'
-        }
-        success {
-            echo 'Pipeline completed successfully!'
         }
     }
 }

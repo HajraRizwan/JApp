@@ -11,7 +11,8 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    dockerImage = docker.build('hajrarizwan/japp')
+                    // Declare dockerImage to avoid memory leak warnings
+                    def dockerImage = docker.build('hajrarizwan/japp')
                 }
             }
         }
@@ -19,8 +20,9 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    bat 'mkdir -p test-results'
-                    bat 'echo "<testsuite><testcase classname=\\"demo\\" name=\\"test1\\"/></testsuite>" > test-results/test.xml'
+                    // Windows-compatible mkdir
+                    bat 'if not exist test-results mkdir test-results'
+                    bat 'echo "<testsuite><testcase classname=\\"demo\\" name=\\"test1\\"/></testsuite>" > test-results\\test.xml'
                 }
             }
             post {
@@ -34,6 +36,7 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry('', 'dockerhub-cred') {
+                        // Use the same dockerImage declared in Build stage
                         dockerImage.push()
                     }
                 }

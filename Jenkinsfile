@@ -1,11 +1,6 @@
 pipeline {
     agent any
 
-    // Declare dockerImage at pipeline level
-    environment {
-        DOCKER_IMAGE = 'hajrarizwan/japp'
-    }
-
     stages {
         stage('Pull Code') {
             steps {
@@ -16,21 +11,23 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Assign to environment variable
-                    dockerImage = docker.build(DOCKER_IMAGE)
+                    dockerImage = docker.build('hajrarizwan/japp')
                 }
             }
         }
 
+       
         stage('Run Tests') {
             steps {
                 script {
-                    bat 'if not exist test-results mkdir test-results'
-                    bat 'echo "<testsuite><testcase classname=\\"demo\\" name=\\"test1\\"/></testsuite>" > test-results\\test.xml'
+                    // Create a dummy test result file
+                    sh 'mkdir -p test-results'
+                    sh 'echo "<testsuite><testcase classname=\\"demo\\" name=\\"test1\\"/></testsuite>" > test-results/test.xml'
                 }
             }
             post {
                 always {
+                    // Publish the test result so Jenkins can read it
                     junit 'test-results/*.xml'
                 }
             }
@@ -40,7 +37,6 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry('', 'dockerhub-cred') {
-                        // Use the pipeline-level variable
                         dockerImage.push()
                     }
                 }
@@ -48,3 +44,4 @@ pipeline {
         }
     }
 }
+
